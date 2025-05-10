@@ -1,6 +1,7 @@
 import json
 import uuid
 import random
+import os
 from typing import List, Optional, Dict, Any
 
 from fastapi import FastAPI, HTTPException, Depends
@@ -103,107 +104,58 @@ class LeaderboardEntry(BaseModel):
     player_name: str
     best_score: int
 
-# Sample data for initialization
-SAMPLE_LOCATIONS = [
-    {
-        "location_name": "New York City",
-        "nation": "United States",
-        "hints": [
-            "Often referred to as 'The Big Apple'",
-            "Home to a famous green statue in the harbor"
-        ],
-        "interesting_facts": [
-            "The subway system has over 470 stations, the most in the world",
-            "Before 1904, Times Square was called Longacre Square"
-        ],
-        "knowledge_bits": [
-            "The Empire State Building was the tallest building in the world for nearly 40 years",
-            "More than 800 languages are spoken in this city, making it the most linguistically diverse in the world"
-        ]
-    },
-    {
-        "location_name": "Tokyo",
-        "nation": "Japan",
-        "hints": [
-            "World's largest metropolitan area by population",
-            "Famous for its cherry blossoms and technology districts"
-        ],
-        "interesting_facts": [
-            "Was previously known as Edo until 1868",
-            "Has over 12,000 automated vending machines throughout the city"
-        ],
-        "knowledge_bits": [
-            "The Tsukiji fish market handles over 2,000 tons of seafood daily",
-            "Contains over 100 universities and colleges"
-        ]
-    },
-    {
-        "location_name": "Paris",
-        "nation": "France",
-        "hints": [
-            "Known worldwide as the 'City of Love'",
-            "Famous for its iron lattice tower visible throughout the city"
-        ],
-        "interesting_facts": [
-            "The Eiffel Tower was built for the 1889 World's Fair and was meant to be temporary",
-            "Has more than 470 parks and gardens within the city limits"
-        ],
-        "knowledge_bits": [
-            "The Louvre museum would take approximately 100 days to see every piece of art",
-            "There are over 6,100 streets in this city"
-        ]
-    },
-    {
-        "location_name": "Cairo",
-        "nation": "Egypt",
-        "hints": [
-            "The largest city in Africa and the Middle East",
-            "Located near some of the world's most famous ancient monuments"
-        ],
-        "interesting_facts": [
-            "Known as 'The City of a Thousand Minarets' due to its Islamic architecture",
-            "The metro system is one of only two in Africa"
-        ],
-        "knowledge_bits": [
-            "The city was founded in 969 CE",
-            "Ancient pyramids are visible from certain tall buildings in the city"
-        ]
-    },
-    {
-        "location_name": "Sydney",
-        "nation": "Australia",
-        "hints": [
-            "Famous for its distinctive opera house designed to look like sails",
-            "Built around one of the world's largest natural harbors"
-        ],
-        "interesting_facts": [
-            "The iconic Opera House has over one million roof tiles",
-            "The Sydney Harbour Bridge is nicknamed 'The Coathanger'"
-        ],
-        "knowledge_bits": [
-            "The city has over 100 beaches including the famous Bondi Beach",
-            "It was founded as a British penal colony in 1788"
-        ]
-    }
-]
+# Data loading functions
+def read_json_data(filepath):
+    """Reads data from a JSON file and returns it as a list."""
+    try:
+        with open(filepath, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        print(f"[Error] File not found: {filepath}")
+        return []
+    except json.JSONDecodeError:
+        print(f"[Error] Invalid JSON format in file: {filepath}")
+        return []
+
+def load_locations_from_json(filepath, db_session):
+    """Load location data from JSON file into database"""
+    locations_data = read_json_data(filepath)
+    locations_added = 0
+    
+    for data in locations_data:
+        # Map the old field names to our new model field names
+        location = LocationModel(
+            location_name=data.get("city"),
+            nation=data.get("country"),
+            hints=data.get("clues", []),
+            interesting_facts=data.get("fun_fact", []),
+            knowledge_bits=data.get("trivia", [])
+        )
+        db_session.add(location)
+        locations_added += 1
+        print(f"Added location: {location.location_name}, {location.nation}")
+    
+    if locations_added > 0:
+        db_session.commit()
+        print(f"Successfully added {locations_added} locations to database")
+    
+    return locations_added
 
 # Database initialization
 def initialize_database():
     ModelBase.metadata.create_all(bind=db_engine)
     
-    # Add sample data if database is empty
+    # Check if database is empty and data file exists
     with SessionFactory() as session:
         if session.query(LocationModel).count() == 0:
-            for location_data in SAMPLE_LOCATIONS:
-                location = LocationModel(
-                    location_name=location_data["location_name"],
-                    nation=location_data["nation"],
-                    hints=location_data["hints"],
-                    interesting_facts=location_data["interesting_facts"],
-                    knowledge_bits=location_data["knowledge_bits"]
-                )
-                session.add(location)
-            session.commit()
+            # Try to load from data.json in current directory
+            data_file = "data.json"
+            if os.path.exists(data_file):
+                print(f"Loading initial data from {data_file}")
+                load_locations_from_json(data_file, session)
+            else:
+                print(f"Warning: {data_file} not found. Database is empty.") 
+                print("You can add data by running the data importer script separately.")
 
 @app.on_event("startup")
 def on_startup():
