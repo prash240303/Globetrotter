@@ -1,7 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Akaya+Kanadaka&family=Geist:wght@100..900&display=swap');
 @import "tailwindcss";
-@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
+
+
+
 
 @theme inline {
   --color-background: var(--background);
@@ -42,6 +45,8 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 }
+
+
 
 :root {
   --radius: 0.625rem;
@@ -119,4 +124,32 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+
+
+.akaya-kanadaka-regular {
+  font-family: "Akaya Kanadaka", system-ui;
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* globals.css */
+body {
+  background-image: url('https://img.freepik.com/free-vector/hand-drawn-travel-background_23-2149397490.jpg?t=st=1746946736~exp=1746950336~hmac=1d5a9c82f6b5228e4a1f4c063f9dd8d701ee3422cb04a131e5c1da42b3e2b52f&w=2000'); /* Add this image to /public folder */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-5px); }
+  100% { transform: translateX(5px); }
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
 }

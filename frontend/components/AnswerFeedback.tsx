@@ -9,28 +9,28 @@ interface AnswerFeedbackProps {
 
 function AnswerFeedback({ isCorrect, funFact, trivia }: AnswerFeedbackProps) {
   return (
-    <Alert variant={isCorrect ? "default" : "destructive"} className="my-4">
-      <div className="flex items-center gap-2">
+    <Alert variant={isCorrect ? "default" : "destructive"} className="my-4 px-4 py-3 rounded-lg">
+      <div className="flex items-center gap-3">
         {isCorrect ? (
-          <BadgeCheck className="text-green-600" />
+          <BadgeCheck className="text-green-600 w-6 h-6" />
         ) : (
-          <XCircle className="text-red-600" />
+          <XCircle className="text-red-600 w-6 h-6" />
         )}
-        <AlertTitle>
+        <AlertTitle className="text-xl font-semibold">
           {isCorrect ? "Correct!" : "Not quite right!"}
         </AlertTitle>
       </div>
-      <AlertDescription className="mt-2">
-        <p>
+      <AlertDescription className="mt-3 text-base">
+        <p className="text-lg">
           {isCorrect
             ? "Great job! You've got a knack for geography!"
             : "Don't worry, even seasoned travelers get lost sometimes!"}
         </p>
-        <div className="mt-3">
-          <h4 className="font-semibold">
+        <div className="mt-4">
+          <h4 className="font-semibold text-2xl">
             {isCorrect ? "Fun Fact" : "Did you know?"}
           </h4>
-          <p>{isCorrect ? funFact : trivia}</p>
+          <p className="text-lg">{isCorrect ? funFact : trivia}</p>
         </div>
       </AlertDescription>
     </Alert>

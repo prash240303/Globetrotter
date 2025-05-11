@@ -87,16 +87,10 @@ const UserProfile = ({ onProfileSubmit, existingUsername }: UserProfileProps) =>
   }
 
   return (
-    <div className="w-full max-w-md mx-auto">
-      <div className="flex justify-center mb-6">
-        <div className="w-20 h-20 rounded-full bg-[#F5F6FF] flex items-center justify-center">
-          <Globe className="h-10 w-10 text-[#7B5BE6]" />
-        </div>
-      </div>
-
+    <div className="w-full max-w-md mx-auto my-0">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="username" className="text-[#7B5BE6] font-medium">
+          <Label htmlFor="username" className="text-[#6AB999] font-medium">
             Explorer Name
           </Label>
           <Input
@@ -106,7 +100,7 @@ const UserProfile = ({ onProfileSubmit, existingUsername }: UserProfileProps) =>
             onChange={(e) => setUsername(e.target.value)}
             placeholder="Enter your name"
             disabled={isSubmitting}
-            className="border-[#E0E3FF] focus:border-[#7B5BE6] rounded-xl py-6 px-4 text-lg"
+            className="border-[#E0E3FF] focus:border-[#6AB999] rounded-xl py-6 px-4 text-lg"
           />
         </div>
 
@@ -115,7 +109,7 @@ const UserProfile = ({ onProfileSubmit, existingUsername }: UserProfileProps) =>
         <Button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-[#7B5BE6] hover:bg-[#6A4DD3] text-white font-medium py-6 rounded-xl shadow-md"
+          className="w-full bg-[#6AB999] hover:bg-[#4f9f80] text-white font-medium py-6 rounded-xl shadow-md"
         >
           {isSubmitting ? "Submitting..." : "Start Exploring"}
         </Button>
