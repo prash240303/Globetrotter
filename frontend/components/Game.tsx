@@ -1,5 +1,7 @@
 "use client"
 import React, { useState, useEffect } from 'react';
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import AnswerFeedback from './AnswerFeedback';
 
 const API_URL = 'http://localhost:8000/api';
@@ -39,12 +41,10 @@ const Game: React.FC<GameProps> = ({ onAnswer }) => {
     setLoading(true);
     setSelectedAnswer(null);
     setFeedback(null);
-    
+
     try {
       const response = await fetch(`${API_URL}/quiz/question`);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
+      if (!response.ok) throw new Error('Failed to fetch');
       const data: QuizQuestion = await response.json();
       setGameData(data);
     } catch (error) {
@@ -59,32 +59,24 @@ const Game: React.FC<GameProps> = ({ onAnswer }) => {
   }, []);
 
   const handleOptionSelect = async (optionId: number) => {
-    if (selectedAnswer !== null) return; // Prevent multiple selections
-    
+    if (selectedAnswer !== null) return;
     setSelectedAnswer(optionId);
-    
+
     try {
-      // Verify the answer with the backend
       const response = await fetch(`${API_URL}/quiz/verify/${gameData?.id}/${optionId}`);
       const result = await response.json();
       const isCorrect = result.is_correct;
-      
-      // Call the onAnswer callback to update the score
       onAnswer(isCorrect);
-      
-      // Set feedback data
+
       if (gameData) {
         setFeedback({
           isCorrect,
           interestingFact: gameData.interesting_fact || '',
-          knowledgeBit: gameData.knowledge_bit || ''
+          knowledgeBit: gameData.knowledge_bit || '',
         });
       }
-      
-      // If answer is correct, you could add confetti effect
-      if (isCorrect) {
-        createConfetti();
-      }
+
+      if (isCorrect) createConfetti();
     } catch (error) {
       console.error('Error verifying answer:', error);
     }
@@ -93,7 +85,7 @@ const Game: React.FC<GameProps> = ({ onAnswer }) => {
   const createConfetti = () => {
     const confettiCount = 100;
     const colors = ['#9d4edd', '#7b2cbf', '#2cb199', '#00b4d8', '#e63946', '#ffbe0b'];
-    
+
     for (let i = 0; i < confettiCount; i++) {
       const confetti = document.createElement('div');
       confetti.className = 'confetti';
@@ -102,56 +94,54 @@ const Game: React.FC<GameProps> = ({ onAnswer }) => {
       confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
       confetti.style.width = `${Math.random() * 10 + 5}px`;
       confetti.style.height = `${Math.random() * 10 + 5}px`;
-      
+
       document.body.appendChild(confetti);
-      
-      // Remove confetti after animation completes
       setTimeout(() => {
-        if (document.body.contains(confetti)) {
-          document.body.removeChild(confetti);
-        }
+        if (document.body.contains(confetti)) document.body.removeChild(confetti);
       }, 5000);
     }
   };
 
   const handleNextQuestion = () => {
-    // Only allow proceeding to next destination if answer was correct
-    if (feedback && feedback.isCorrect) {
-      fetchQuestion();
-    }
+    if (feedback?.isCorrect) fetchQuestion();
   };
 
   if (loading) {
     return (
-      <div className="game-container">
-        <p className="loading">Loading destination...</p>
+      <div className="game-container text-center">
+        <p className="text-muted-foreground">Loading destination...</p>
       </div>
     );
   }
 
   return (
-    <div className="game-container">
-      <div className="clue-container">
-        <h3>Where am I?</h3>
-        {gameData?.hints.map((hint, index) => (
-          <p key={index} className="clue-item">{hint}</p>
-        ))}
-      </div>
-      
-      <div className="options-container">
+    <div className="game-container space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Where am I?</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {gameData?.hints.map((hint, index) => (
+            <p key={index} className="text-sm text-muted-foreground">{hint}</p>
+          ))}
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {gameData?.options.map((option) => (
-          <button
+          <Button
             key={option.id}
-            className="option-button"
+            variant="outline"
+            className="flex flex-col items-center"
             onClick={() => handleOptionSelect(option.id)}
             disabled={selectedAnswer !== null}
           >
             {option.location_name}
-            <span className="country">{option.nation}</span>
-          </button>
+            <span className="text-xs text-muted-foreground">{option.nation}</span>
+          </Button>
         ))}
       </div>
-      
+
       {feedback && (
         <AnswerFeedback 
           isCorrect={feedback.isCorrect}
@@ -159,14 +149,14 @@ const Game: React.FC<GameProps> = ({ onAnswer }) => {
           trivia={feedback.knowledgeBit}
         />
       )}
-      
-      {selectedAnswer !== null && feedback && feedback.isCorrect && (
-        <button className="next-button" onClick={handleNextQuestion}>
+
+      {selectedAnswer !== null && feedback?.isCorrect && (
+        <Button className="next-button" onClick={handleNextQuestion}>
           Next Destination
-        </button>
+        </Button>
       )}
     </div>
   );
-}
+};
 
 export default Game;

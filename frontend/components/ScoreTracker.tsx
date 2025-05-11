@@ -1,4 +1,5 @@
 import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Score {
   correct: number;
@@ -12,20 +13,25 @@ interface ScoreTrackerProps {
 
 const ScoreTracker = ({ score }: ScoreTrackerProps) => {
   return (
-    <div className="score-container">
-      <div className="score-item">
-        <p className="score-label">Correct</p>
-        <p className="score-value correct">{score.correct}</p>
-      </div>
-      <div className="score-item">
-        <p className="score-label">Incorrect</p>
-        <p className="score-value incorrect">{score.incorrect}</p>
-      </div>
-      <div className="score-item">
-        <p className="score-label">Total</p>
-        <p className="score-value total">{score.total}</p>
-      </div>
-    </div>
+    <Card className="w-full max-w-sm shadow-md">
+      <CardHeader>
+        <CardTitle className="text-center">Your Score</CardTitle>
+      </CardHeader>
+      <CardContent className="flex justify-between text-center">
+        <div className="flex-1">
+          <p className="text-muted-foreground text-sm">Correct</p>
+          <p className="text-green-600 font-bold text-lg">{score.correct}</p>
+        </div>
+        <div className="flex-1">
+          <p className="text-muted-foreground text-sm">Incorrect</p>
+          <p className="text-red-600 font-bold text-lg">{score.incorrect}</p>
+        </div>
+        <div className="flex-1">
+          <p className="text-muted-foreground text-sm">Total</p>
+          <p className="text-blue-600 font-bold text-lg">{score.total}</p>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

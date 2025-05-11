@@ -1,5 +1,12 @@
-"use client"
-import React, { useState } from 'react';
+"use client";
+
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ChallengeButtonProps {
   username: string;
@@ -7,50 +14,52 @@ interface ChallengeButtonProps {
   referralCode: string;
 }
 
-const ChallengeButton: React.FC<ChallengeButtonProps> = ({ 
-  username, 
+const ChallengeButton: React.FC<ChallengeButtonProps> = ({
+  username,
   highScore,
-  referralCode 
+  referralCode,
 }) => {
   const [isCopied, setIsCopied] = useState(false);
 
   const handleChallenge = () => {
-    // Create a challenge URL with the player's referral code
     const challengeUrl = `${window.location.origin}?code=${referralCode}`;
-    
-    // Copy the URL to clipboard
-    navigator.clipboard.writeText(challengeUrl)
+
+    navigator.clipboard
+      .writeText(challengeUrl)
       .then(() => {
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 3000);
       })
-      .catch(err => {
-        console.error('Failed to copy: ', err);
-        // Fallback for browsers that don't support clipboard API
-        const textArea = document.createElement('textarea');
+      .catch((err) => {
+        console.error("Failed to copy: ", err);
+
+        const textArea = document.createElement("textarea");
         textArea.value = challengeUrl;
         document.body.appendChild(textArea);
         textArea.select();
-        document.execCommand('copy');
+        document.execCommand("copy");
         document.body.removeChild(textArea);
+
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 3000);
       });
   };
 
   return (
-    <div className="challenge-container">
-      <button 
-        className="challenge-button"
-        onClick={handleChallenge}
-      >
-        {isCopied ? 'Challenge Link Copied!' : 'Challenge Friends'}
-      </button>
-      {isCopied && (
-        <p className="challenge-tooltip">
-          Share this link with friends to challenge them to beat your score of {highScore}!
-        </p>
-      )}
+    <div className="flex flex-col items-center gap-2 mt-4">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button onClick={handleChallenge} variant="outline">
+            {isCopied ? "Link Copied!" : "Challenge Friends"}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-sm text-center">
+          <p>
+            Share this link to challenge friends to beat your score of{" "}
+            <strong>{highScore}</strong>!
+          </p>
+        </TooltipContent>
+      </Tooltip>
     </div>
   );
 };
