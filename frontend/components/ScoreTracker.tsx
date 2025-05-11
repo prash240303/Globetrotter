@@ -1,38 +1,37 @@
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card"
+import { CheckCircle, XCircle, Hash } from "lucide-react"
 
 interface Score {
-  correct: number;
-  incorrect: number;
-  total: number;
+  correct: number
+  incorrect: number
+  total: number
 }
 
 interface ScoreTrackerProps {
-  score: Score;
+  score: Score
 }
 
 const ScoreTracker = ({ score }: ScoreTrackerProps) => {
   return (
-    <Card className="w-full max-w-sm shadow-md">
-      <CardHeader>
-        <CardTitle className="text-center">Your Score</CardTitle>
-      </CardHeader>
-      <CardContent className="flex justify-between text-center">
-        <div className="flex-1">
-          <p className="text-muted-foreground text-sm">Correct</p>
-          <p className="text-green-600 font-bold text-lg">{score.correct}</p>
+    <Card className="border-0 shadow-md bg-white rounded-full overflow-hidden">
+      <CardContent className="flex justify-between items-center p-2 px-4">
+        <div className="flex items-center gap-2 px-2">
+          <CheckCircle className="h-4 w-4 text-[#4CD964]" />
+          <p className="font-bold text-[#4CD964]">{score.correct}</p>
         </div>
-        <div className="flex-1">
-          <p className="text-muted-foreground text-sm">Incorrect</p>
-          <p className="text-red-600 font-bold text-lg">{score.incorrect}</p>
+        <div className="h-6 w-px bg-[#E0E3FF]"></div>
+        <div className="flex items-center gap-2 px-2">
+          <XCircle className="h-4 w-4 text-[#FF5757]" />
+          <p className="font-bold text-[#FF5757]">{score.incorrect}</p>
         </div>
-        <div className="flex-1">
-          <p className="text-muted-foreground text-sm">Total</p>
-          <p className="text-blue-600 font-bold text-lg">{score.total}</p>
+        <div className="h-6 w-px bg-[#E0E3FF]"></div>
+        <div className="flex items-center gap-2 px-2">
+          <Hash className="h-4 w-4 text-[#7B5BE6]" />
+          <p className="font-bold text-[#7B5BE6]">{score.total}</p>
         </div>
       </CardContent>
     </Card>
-  );
-};
+  )
+}
 
-export default ScoreTracker;
+export default ScoreTracker

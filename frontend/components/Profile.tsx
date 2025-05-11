@@ -1,125 +1,127 @@
-"use client";
+"use client"
 
-import React, { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
+import type React from "react"
+import { useState, useEffect } from "react"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Globe } from "lucide-react"
 
 interface UserProfileProps {
-  onProfileSubmit: (profile: UserProfileData) => void;
-  existingUsername?: string;
+  onProfileSubmit: (profile: UserProfileData) => void
+  existingUsername?: string
 }
 
 interface UserProfileData {
-  id: number;
-  player_name: string;
-  referral_code: string;
-  best_score: number;
+  id: number
+  player_name: string
+  referral_code: string
+  best_score: number
 }
 
-const UserProfile = ({
-  onProfileSubmit,
-  existingUsername,
-}: UserProfileProps) => {
-  const [username, setUsername] = useState<string>(existingUsername || "");
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
+const UserProfile = ({ onProfileSubmit, existingUsername }: UserProfileProps) => {
+  const [username, setUsername] = useState<string>(existingUsername || "")
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
+  const [error, setError] = useState<string>("")
 
   useEffect(() => {
-    const storedUsername = localStorage.getItem("globetrotter_username");
+    const storedUsername = localStorage.getItem("globetrotter_username")
     if (storedUsername && !existingUsername) {
-      setUsername(storedUsername);
-      fetchExistingPlayer(storedUsername);
+      setUsername(storedUsername)
+      fetchExistingPlayer(storedUsername)
     }
-  }, []);
+  }, [])
 
   const fetchExistingPlayer = async (playerName: string) => {
     try {
-      const response = await fetch(
-        `http://localhost:8000/api/players/name/${playerName}`
-      );
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/players/name/${playerName}`)
       if (response.ok) {
-        const data = await response.json();
-        onProfileSubmit(data);
-        return true;
+        const data = await response.json()
+        onProfileSubmit(data)
+        return true
       }
-      return false;
+      return false
     } catch (error) {
-      console.error("Error fetching player:", error);
-      return false;
+      console.error("Error fetching player:", error)
+      return false
     }
-  };
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
     if (!username.trim()) {
-      setError("Please enter a username");
-      return;
+      setError("Please enter a username")
+      return
     }
 
-    setIsSubmitting(true);
-    setError("");
+    setIsSubmitting(true)
+    setError("")
 
     try {
-      const existingPlayer = await fetchExistingPlayer(username);
+      const existingPlayer = await fetchExistingPlayer(username)
 
       if (!existingPlayer) {
-        const response = await fetch("http://localhost:8000/api/players", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/players`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ player_name: username }),
-        });
+        })
 
         if (!response.ok) {
-          const data = await response.json();
-          throw new Error(data.detail || "Something went wrong");
+          const data = await response.json()
+          throw new Error(data.detail || "Something went wrong")
         }
 
-        const data = await response.json();
-        onProfileSubmit(data);
-        localStorage.setItem("globetrotter_username", username);
+        const data = await response.json()
+        onProfileSubmit(data)
+        localStorage.setItem("globetrotter_username", username)
       }
     } catch (error: any) {
-      setError(error.message);
+      setError(error.message)
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   return (
-    <Card className="w-full max-w-md mx-auto mt-10 shadow-lg">
-      <CardHeader>
-        <CardTitle className="text-center text-xl">Enter Your Explorer Name</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="username">Name</Label>
-            <Input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Your name"
-              disabled={isSubmitting}
-            />
-          </div>
+    <div className="w-full max-w-md mx-auto">
+      <div className="flex justify-center mb-6">
+        <div className="w-20 h-20 rounded-full bg-[#F5F6FF] flex items-center justify-center">
+          <Globe className="h-10 w-10 text-[#7B5BE6]" />
+        </div>
+      </div>
 
-          {error && (
-            <p className="text-destructive text-sm font-medium">{error}</p>
-          )}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="username" className="text-[#7B5BE6] font-medium">
+            Explorer Name
+          </Label>
+          <Input
+            id="username"
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="Enter your name"
+            disabled={isSubmitting}
+            className="border-[#E0E3FF] focus:border-[#7B5BE6] rounded-xl py-6 px-4 text-lg"
+          />
+        </div>
 
-          <Button type="submit" disabled={isSubmitting} className="w-full">
-            {isSubmitting ? "Submitting..." : "Start Exploring"}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
-  );
-};
+        {error && <p className="text-[#FF5757] text-sm font-medium">{error}</p>}
 
-export default UserProfile;
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full bg-[#7B5BE6] hover:bg-[#6A4DD3] text-white font-medium py-6 rounded-xl shadow-md"
+        >
+          {isSubmitting ? "Submitting..." : "Start Exploring"}
+        </Button>
+      </form>
+    </div>
+  )
+}
+
+export default UserProfile

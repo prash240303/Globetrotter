@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Trophy, RotateCcw } from 'lucide-react';
 
 interface Score {
   correct: number;
@@ -89,7 +90,7 @@ function GameResult({ score, username, onPlayAgain }: GameResultProps) {
 
   const createConfetti = () => {
     const confettiCount = 200;
-    const colors = ["#9d4edd", "#7b2cbf", "#2cb199", "#00b4d8", "#e63946", "#ffbe0b"];
+    const colors = ['#7B5BE6', '#00C2CB', '#FF7D54', '#4CD964', '#FFCF54', '#FF5757'];
 
     for (let i = 0; i < confettiCount; i++) {
       const confetti = document.createElement("div");
@@ -113,51 +114,65 @@ function GameResult({ score, username, onPlayAgain }: GameResultProps) {
 
   return (
     <div className="flex justify-center items-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="text-4xl">🏁</div>
-          <CardTitle className="text-2xl">Game Over!</CardTitle>
+      <Card className="w-full border-0 shadow-lg rounded-xl overflow-hidden">
+        <CardHeader className="text-center bg-gradient-to-r from-[#7B5BE6] to-[#9168F2] pb-6 pt-8">
+          <div className="text-5xl mb-2">🏁</div>
+          <CardTitle className="text-3xl text-white font-bold">Game Over!</CardTitle>
         </CardHeader>
 
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6 p-8">
           <div className="text-center">
-            <p className="text-muted-foreground">Final Score</p>
-            <p className="text-5xl font-bold text-green-600">{score.correct}</p>
+            <p className="text-[#8A8FB9] mb-2">Final Score</p>
+            <p className="text-6xl font-bold text-[#4CD964]">{score.correct}</p>
           </div>
 
           {loading ? (
-            <Skeleton className="h-6 w-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-6 w-full" />
+              <Skeleton className="h-6 w-3/4 mx-auto" />
+            </div>
           ) : error ? (
-            <Alert variant="destructive">
+            <Alert variant="destructive" className="bg-[#FFF1F1] border-[#FF5757] text-[#D93636]">
               <AlertTitle>Error</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
-              <Button className="mt-2" variant="outline" onClick={() => window.location.reload()}>
+              <Button className="mt-4 bg-white text-[#FF5757] border border-[#FF5757] hover:bg-[#FFF1F1]" onClick={() => window.location.reload()}>
                 Retry
               </Button>
             </Alert>
           ) : result ? (
-            <div className="text-center space-y-2">
-              <p className="text-muted-foreground">Your Best Score:</p>
-              <p className="text-2xl font-semibold">{result.best_score}</p>
+            <div className="text-center space-y-4 bg-[#F5F6FF] p-6 rounded-xl">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#FFCF54] text-white mb-2">
+                <Trophy className="h-8 w-8" />
+              </div>
+              <p className="text-[#8A8FB9]">Your Best Score:</p>
+              <p className="text-3xl font-bold text-[#7B5BE6]">{result.best_score}</p>
               {result.is_personal_best && (
-                <p className="text-green-700 font-bold text-lg">🎉 New High Score! 🎉</p>
+                <p className="text-[#4CD964] font-bold text-lg mt-2 bg-[#EEFFF1] py-2 px-4 rounded-full inline-block">
+                  🎉 New High Score! 🎉
+                </p>
               )}
             </div>
           ) : null}
 
-          <Button className="w-full" onClick={onPlayAgain} disabled={loading}>
-            Play Again
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 pt-4">
+            <Button 
+              className="flex-1 bg-[#FF5757] hover:bg-[#E04A4A] text-white font-medium py-3 rounded-xl shadow-md flex items-center justify-center gap-2"
+              onClick={onPlayAgain} 
+              disabled={loading}
+            >
+              <RotateCcw className="h-4 w-4" /> Play Again
+            </Button>
 
-          {result && referralCode && (
-            <div className="mt-4">
-              <ChallengeButton
-                username={username}
-                highScore={result.best_score}
-                referralCode={referralCode}
-              />
-            </div>
-          )}
+            {result && referralCode && (
+              <div className="flex-1">
+                <ChallengeButton
+                  username={username}
+                  highScore={result.best_score}
+                  referralCode={referralCode}
+                />
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
