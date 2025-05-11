@@ -13,6 +13,10 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.types import TypeDecorator
 
+from apscheduler.schedulers.background import BackgroundScheduler
+import httpx
+import logging
+
 # Create the FastAPI application
 app = FastAPI(title="GeoGuess API", description="Geography quiz game API")
 
@@ -121,7 +125,6 @@ def load_locations_from_json(filepath, db_session):
     """Load location data from JSON file into database"""
     locations_data = read_json_data(filepath)
     locations_added = 0
-    
     for data in locations_data:
         # Map the old field names to our new model field names
         location = LocationModel(
@@ -160,6 +163,24 @@ def initialize_database():
 @app.on_event("startup")
 def on_startup():
     initialize_database()
+    scheduler.start()
+
+# Scheduler to keep backend awake
+logging.basicConfig(level=logging.INFO)
+scheduler = BackgroundScheduler()
+backend_url = "https://globetrotter-5f2z.onrender.com"  # Change to deployed URL if needed
+
+def ping_server():
+    try:
+        response = httpx.get(backend_url, timeout=5)
+        if response.status_code == 200:
+            logging.info("✅ Server is alive")
+        else:
+            logging.warning(f"⚠️ Unexpected status code: {response.status_code}")
+    except Exception as e:
+        logging.error(f"❌ Error pinging server: {e}")
+
+scheduler.add_job(ping_server, "interval", minutes=14)
 
 # API Endpoints
 @app.get("/api/quiz/question", response_model=QuizQuestion)
