@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+"use client"
+import React, { useState, useEffect } from 'react';
 
 interface UserProfileProps {
   onProfileSubmit: (profile: UserProfileData) => void;
@@ -6,14 +7,40 @@ interface UserProfileProps {
 }
 
 interface UserProfileData {
-  username: string;
-  high_score: number;
+  id: number;
+  player_name: string;
+  referral_code: string;
+  best_score: number;
 }
 
-const UserProfile= ({ onProfileSubmit, existingUsername }:UserProfileProps) => {
+const UserProfile = ({ onProfileSubmit, existingUsername }: UserProfileProps) => {
   const [username, setUsername] = useState<string>(existingUsername || '');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
+  
+  useEffect(() => {
+    // Check for stored username on component mount
+    const storedUsername = localStorage.getItem('globetrotter_username');
+    if (storedUsername && !existingUsername) {
+      setUsername(storedUsername);
+      fetchExistingPlayer(storedUsername);
+    }
+  }, []);
+
+  const fetchExistingPlayer = async (playerName: string) => {
+    try {
+      const response = await fetch(`http://localhost:8000/api/players/name/${playerName}`);
+      if (response.ok) {
+        const data = await response.json();
+        onProfileSubmit(data);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Error fetching player:", error);
+      return false;
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,38 +54,29 @@ const UserProfile= ({ onProfileSubmit, existingUsername }:UserProfileProps) => {
     setError('');
     
     try {
-      const response = await fetch('http://localhost:8000/api/user-profile', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username }),
-      });
+      // First check if user exists
+      const existingPlayer = await fetchExistingPlayer(username);
       
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.detail || 'Something went wrong');
-      }
-      
-      const data: UserProfileData = await response.json();
-      onProfileSubmit(data);
-      localStorage.setItem('globetrotter_username', username);
-    } catch (error: any) {
-      if (error.message.includes('already taken')) {
-        // If username exists, try to fetch the profile
-        try {
-          const profileResponse = await fetch(`http://localhost:8000/api/user-profile/${username}`);
-          if (profileResponse.ok) {
-            const profileData: UserProfileData = await profileResponse.json();
-            onProfileSubmit(profileData);
-            localStorage.setItem('globetrotter_username', username);
-            return;
-          }
-        } catch (profileError) {
-          console.error('Error fetching profile:', profileError);
+      if (!existingPlayer) {
+        // If player doesn't exist, create a new one
+        const response = await fetch('http://localhost:8000/api/players', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ player_name: username }),
+        });
+        
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.detail || 'Something went wrong');
         }
+        
+        const data = await response.json();
+        onProfileSubmit(data);
+        localStorage.setItem('globetrotter_username', username);
       }
-      
+    } catch (error: any) {
       setError(error.message);
     } finally {
       setIsSubmitting(false);

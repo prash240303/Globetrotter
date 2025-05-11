@@ -1,26 +1,28 @@
+"use client"
 import React, { useState, useEffect } from 'react';
 import AnswerFeedback from './AnswerFeedback';
 
 const API_URL = 'http://localhost:8000/api';
 
-interface Option {
+interface LocationOption {
   id: number;
-  city: string;
-  country: string;
+  location_name: string;
+  nation: string;
 }
 
-interface GameData {
-  clues: string[];
-  options: Option[];
+interface QuizQuestion {
+  id: number;
+  hints: string[];
+  options: LocationOption[];
   correct_id: number;
-  fun_fact: string;
-  trivia: string;
+  interesting_fact: string;
+  knowledge_bit: string;
 }
 
 interface Feedback {
   isCorrect: boolean;
-  funFact: string;
-  trivia: string;
+  interestingFact: string;
+  knowledgeBit: string;
 }
 
 interface GameProps {
@@ -29,55 +31,63 @@ interface GameProps {
 
 const Game: React.FC<GameProps> = ({ onAnswer }) => {
   const [loading, setLoading] = useState<boolean>(true);
-  const [gameData, setGameData] = useState<GameData | null>(null);
+  const [gameData, setGameData] = useState<QuizQuestion | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
 
-  const fetchDestination = async () => {
+  const fetchQuestion = async () => {
     setLoading(true);
     setSelectedAnswer(null);
     setFeedback(null);
     
     try {
-      const response = await fetch(`${API_URL}/random-destination`);
+      const response = await fetch(`${API_URL}/quiz/question`);
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
-      const data: GameData = await response.json();
+      const data: QuizQuestion = await response.json();
       setGameData(data);
     } catch (error) {
-      console.error('Error fetching destination:', error);
+      console.error('Error fetching question:', error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchDestination();
+    fetchQuestion();
   }, []);
 
   const handleOptionSelect = async (optionId: number) => {
     if (selectedAnswer !== null) return; // Prevent multiple selections
     
     setSelectedAnswer(optionId);
-    const isCorrect = optionId === gameData?.correct_id;
     
-    // Call the onAnswer callback to update the score
-    if (gameData) {
+    try {
+      // Verify the answer with the backend
+      const response = await fetch(`${API_URL}/quiz/verify/${gameData?.id}/${optionId}`);
+      const result = await response.json();
+      const isCorrect = result.is_correct;
+      
+      // Call the onAnswer callback to update the score
       onAnswer(isCorrect);
+      
+      // Set feedback data
+      if (gameData) {
+        setFeedback({
+          isCorrect,
+          interestingFact: gameData.interesting_fact || '',
+          knowledgeBit: gameData.knowledge_bit || ''
+        });
+      }
+      
+      // If answer is correct, you could add confetti effect
+      if (isCorrect) {
+        createConfetti();
+      }
+    } catch (error) {
+      console.error('Error verifying answer:', error);
     }
-    
-    // Set feedback data
-    setFeedback({
-      isCorrect,
-      funFact: gameData?.fun_fact || '',
-      trivia: gameData?.trivia || ''
-    });
-    
-    // // Create confetti if answer is correct
-    // if (isCorrect) {
-    //   createConfetti();
-    // }
   };
 
   const createConfetti = () => {
@@ -104,10 +114,10 @@ const Game: React.FC<GameProps> = ({ onAnswer }) => {
     }
   };
 
-  const handleNextDestination = () => {
+  const handleNextQuestion = () => {
     // Only allow proceeding to next destination if answer was correct
     if (feedback && feedback.isCorrect) {
-      fetchDestination();
+      fetchQuestion();
     }
   };
 
@@ -123,8 +133,8 @@ const Game: React.FC<GameProps> = ({ onAnswer }) => {
     <div className="game-container">
       <div className="clue-container">
         <h3>Where am I?</h3>
-        {gameData?.clues.map((clue, index) => (
-          <p key={index} className="clue-item">{clue}</p>
+        {gameData?.hints.map((hint, index) => (
+          <p key={index} className="clue-item">{hint}</p>
         ))}
       </div>
       
@@ -136,8 +146,8 @@ const Game: React.FC<GameProps> = ({ onAnswer }) => {
             onClick={() => handleOptionSelect(option.id)}
             disabled={selectedAnswer !== null}
           >
-            {option.city}
-            <span className="country">{option.country}</span>
+            {option.location_name}
+            <span className="country">{option.nation}</span>
           </button>
         ))}
       </div>
@@ -145,13 +155,13 @@ const Game: React.FC<GameProps> = ({ onAnswer }) => {
       {feedback && (
         <AnswerFeedback 
           isCorrect={feedback.isCorrect}
-          funFact={feedback.funFact}
-          trivia={feedback.trivia}
+          funFact={feedback.interestingFact}
+          trivia={feedback.knowledgeBit}
         />
       )}
       
       {selectedAnswer !== null && feedback && feedback.isCorrect && (
-        <button className="next-button" onClick={handleNextDestination}>
+        <button className="next-button" onClick={handleNextQuestion}>
           Next Destination
         </button>
       )}

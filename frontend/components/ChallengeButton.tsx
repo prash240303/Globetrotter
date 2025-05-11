@@ -1,74 +1,57 @@
-import { useState } from 'react';
+"use client"
+import React, { useState } from 'react';
 
 interface ChallengeButtonProps {
   username: string;
   highScore: number;
+  referralCode: string;
 }
 
-const ChallengeButton = ({ username, highScore }:ChallengeButtonProps) => {
-  const [showPopup, setShowPopup] = useState<boolean>(false);
+const ChallengeButton: React.FC<ChallengeButtonProps> = ({ 
+  username, 
+  highScore,
+  referralCode 
+}) => {
+  const [isCopied, setIsCopied] = useState(false);
 
   const handleChallenge = () => {
-    setShowPopup(true);
-  };
-
-  const closePopup = () => {
-    setShowPopup(false);
-  };
-
-  const generateInviteLink = (): string => {
-    const baseUrl = window.location.origin;
-    return `${baseUrl}?invite=${encodeURIComponent(username)}`;
-  };
-
-  const shareToWhatsApp = () => {
-    const inviteLink = generateInviteLink();
-    const message = `🌍 Challenge: I scored ${highScore} points in Globetrotter! Can you beat me? Play here: ${inviteLink}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
-  };
-
-  const copyToClipboard = () => {
-    const inviteLink = generateInviteLink();
-    navigator.clipboard.writeText(inviteLink);
-    alert('Invite link copied to clipboard!');
+    // Create a challenge URL with the player's referral code
+    const challengeUrl = `${window.location.origin}?code=${referralCode}`;
+    
+    // Copy the URL to clipboard
+    navigator.clipboard.writeText(challengeUrl)
+      .then(() => {
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 3000);
+      })
+      .catch(err => {
+        console.error('Failed to copy: ', err);
+        // Fallback for browsers that don't support clipboard API
+        const textArea = document.createElement('textarea');
+        textArea.value = challengeUrl;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 3000);
+      });
   };
 
   return (
-    <>
-      <button className="next-button" onClick={handleChallenge} style={{ backgroundColor: 'var(--secondary)' }}>
-        Challenge a Friend
+    <div className="challenge-container">
+      <button 
+        className="challenge-button"
+        onClick={handleChallenge}
+      >
+        {isCopied ? 'Challenge Link Copied!' : 'Challenge Friends'}
       </button>
-
-      {showPopup && (
-        <div className="popup-overlay" onClick={closePopup}>
-          <div className="popup-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Challenge a Friend</h3>
-            <p>Share your score and challenge friends to beat it!</p>
-            
-            <div className="challenge-card">
-              <div className="challenge-header">
-                <h4>🌍 Globetrotter Challenge</h4>
-              </div>
-              <div className="challenge-body">
-                <p><strong>{username}</strong> has scored <strong>{highScore}</strong> points!</p>
-                <p>Can you beat this score?</p>
-              </div>
-            </div>
-            
-            <div className="share-buttons">
-              <button onClick={shareToWhatsApp} className="option-button">
-                Share on WhatsApp
-              </button>
-              <button onClick={copyToClipboard} className="option-button">
-                Copy Invite Link
-              </button>
-            </div>
-            
-            <button onClick={closePopup} className="close-button">Close</button>
-          </div>
-        </div>
+      {isCopied && (
+        <p className="challenge-tooltip">
+          Share this link with friends to challenge them to beat your score of {highScore}!
+        </p>
       )}
-    </>
+    </div>
   );
 };
 
