@@ -3,6 +3,9 @@
 Globetrotter is a full-stack geography quiz game that challenges users to guess locations based on hints, facts, and trivia. It features a FastAPI-powered backend with a React frontend styled using TailwindCSS and ShadCN.
 
 ---
+### Demo 
+
+https://youtu.be/sP2ZtC2BuqM
 
 ## 🔧 Tech Stack
 
